@@ -1,8 +1,11 @@
+from rest_framework import status, filters, viewsets
 from rest_framework.views import APIView
-from rest_framework import viewsets
 from rest_framework.response import Response
-from rest_framework import status
-from profles_api import serializers
+from rest_framework.authentication import TokenAuthentication
+from rest_framework.authtoken.views import ObtainAuthToken
+from rest_framework.settings import api_settings
+from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
+from profles_api import serializers, models, permissions
 
 
 class HelloApiView(APIView):
@@ -82,3 +85,31 @@ class HelloViewSet(viewsets.ViewSet):
     def destroy(self, request, pk=None):
         """Equivalent to DELETE method"""
         return Response({"method":"DESTROY"})
+
+
+class UserProfileViewSet(viewsets.ModelViewSet):
+    """ViewSet for Userprofile"""
+
+    serializer_class = serializers.UserProfileSerializer
+    queryset = models.UserProfile.objects.all()
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (permissions.UpdateOwnUserProfile,)
+    filter_backends = (filters.SearchFilter, )
+    search_fields = ('name', 'email')
+
+
+class UserLoginApiView(ObtainAuthToken):
+    """"Login API view for Users"""
+    renderer_classes = api_settings.DEFAULT_RENDERER_CLASSES
+
+
+class UserProfileFeedViewSet(viewsets.ModelViewSet):
+    """Viewset for UserProfileFeed"""
+    serializer_class = serializers.UserProfileFeedSerializer
+    queryset = models.UserProfileFeed.objects.all()
+    authentication_classes = (TokenAuthentication, )
+    permission_classes = (permissions.UpdateOwnUserProfileFeed, IsAuthenticatedOrReadOnly) #IsAuthenticated
+
+    def perform_create(self, serializer):
+        """To map the User Profile to Profile Feed"""
+        serializer.save(user=self.request.user)
