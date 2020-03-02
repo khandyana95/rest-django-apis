@@ -21,12 +21,13 @@ class UserProfileSerializer(serializers.ModelSerializer):
             }
         }
 
-        def create(self, validated_data):
-            user = models.UserProfile.objects.create_user(email=validated_data.get('email'),
-            name=validated_data.get('name'),
-            password=validated_data.get('password')
-            )
-            return user
+    def create(self, validated_data):
+        user = models.UserProfile.objects.create_user(email=validated_data.get('email'),
+        name=validated_data.get('name'),
+        password=validated_data.get('password')
+        )
+
+        return user
 
 
 class UserProfileFeedSerializer(serializers.ModelSerializer):
